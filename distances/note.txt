@@ -1,0 +1,20 @@
+fase preliminare: calcolo delle distaze euclidee
+
+Programma CPU in c con in matrice triangolare, distanza fra un punto e se stesso compresa
+
+n= 1024*8
+n distanze calcolate e salvate(conbinazioni con ripetizioni su 2) 33.558.528
+tempo medio(variazione massima) = 177.47(16.5)
+
+165.17
+189.25
+160.73
+193.88
+175.84
+167.49
+189.43
+189.44
+190.85
+164.15
+165.98
+
