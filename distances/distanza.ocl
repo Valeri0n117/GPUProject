@@ -1,0 +1,45 @@
+kernel void init(global float *posizioni, int nels){
+
+	int x=get_global_id(0);
+	if(x<nels){
+#if 0
+		posizioni[x,0]=(float)x;
+		posizioni[x,1]=(float)x;
+#else 
+		posizioni[x*2]=(float)x;
+		posizioni[x*2+1]=(float)x;
+
+#endif
+	}
+
+}
+
+ //MEDIA CON NELS = 1024*8 24.6 MS  MEMORIA USATA (1024*8)^2
+kernel void calcola2(global float *p, global float * distanze, int nels){
+
+	const int j=get_global_id(1);
+	const int i=get_global_id(0);
+
+	distanze[i*nels+j]= sqrt( pow(p[i*2]-p[j*2], 2.0f) + pow(p[i*2+1]-p[j*2+1], 2.0f) );
+
+} 
+
+
+/* TENTATIVO CON MATRICE TRIANGOLARE
+	 MEMORIA USATA: ((1024*8)^2)/2
+	 TEMPO IDEALE SIMILE A CALCOLA 
+	k=i*
+	 */
+
+kernel void calcola(global float *p, global float * distanze, int nels){
+
+	const int j=get_global_id(1);
+	const int i=get_global_id(0);
+
+	if(i<=j){
+		distanze[ ((i*(i+1))/2)+j ]= sqrt( pow(p[i*2]-p[j*2], 2.0f) + pow(p[i*2+1]-p[j*2+1], 2.0f) );
+	}
+
+}
+
+
