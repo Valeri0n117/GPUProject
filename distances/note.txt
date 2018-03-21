@@ -1,6 +1,6 @@
 fase preliminare: calcolo delle distaze euclidee
 
-Programma CPU in c con in matrice triangolare, distanza fra un punto e se stesso compresa
+Programma CPU in c con matrice triangolare, distanza fra un punto e se stesso compresa
 
 n= 1024*8
 n distanze calcolate e salvate(conbinazioni con ripetizioni su 2) 33.558.528

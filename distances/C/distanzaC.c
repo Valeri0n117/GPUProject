@@ -17,7 +17,12 @@ void stampa(float *distanze, int n){
 	return;
 }
 
-void verify(float *distanze, )
+
+//TO DO
+void verify(float *distanze, int n){
+
+
+}
 
 
 
