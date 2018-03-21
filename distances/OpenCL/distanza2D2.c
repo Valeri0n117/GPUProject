@@ -20,9 +20,9 @@ cl_event init(cl_command_queue que, cl_kernel init_k, cl_mem posizioni, cl_int n
 	ocl_check(err,"set init arg 1");
 
 	err= clEnqueueNDRangeKernel(que, init_k,
-		1, NULL, gws, NULL, //griglia di lancio
+		1, NULL, gws, NULL, //launch matrix
 		0, NULL, &init_evt);  //waiting list
-	ocl_check(err,"incodamento init");
+	ocl_check(err,"queuing init");
 
 	return init_evt;
 
@@ -50,7 +50,7 @@ cl_event calcola(cl_command_queue que, cl_kernel calcola_k, cl_mem posizioni,
 	err= clEnqueueNDRangeKernel(que, calcola_k, 
 		2, NULL, gws, NULL,
 		1,wait_list, &calcola_evt);
-	ocl_check(err, "incodamento calcola");
+	ocl_check(err, "queuing calcola");
 
 	return calcola_evt;
 }
@@ -90,11 +90,11 @@ void print(float *dist, int nels){
 int main(int argc, char *argv[]){
 
 	if (argc < 2)
-		error("inserire il numero di elementi");
+		error("insert numbers of element");
 
 	int nels=atoi(argv[1]);
 	if(nels<= 0)
-		error("il numero di elementi deve essere maggiore di 0");
+		error("number of elements must me positive");
 
 	const size_t memsize = sizeof(float)*nels;
 	
@@ -124,9 +124,9 @@ int main(int argc, char *argv[]){
 	//allocazione memoria
 
 	cl_mem posizioni= clCreateBuffer(ctx, CL_MEM_READ_WRITE, memsize*2 , NULL, &err);
-	ocl_check(err, "allocazione posizioni");
+	ocl_check(err, "allocation of posizioni");
 	cl_mem distanze= clCreateBuffer(ctx, CL_MEM_READ_WRITE, ((nels*(nels+1))/2)*sizeof(float), NULL, &err);
-	ocl_check(err,"allocazione matrice distanze");
+	ocl_check(err,"allocation matrix distanze");
 
 	cl_event init_evt= init(que, init_k, posizioni, nels);
 	cl_event calcola_evt= calcola(que, calcola_k, posizioni, distanze, nels, init_evt);
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]){
 	cl_event copy_evt;
 	float *input = clEnqueueMapBuffer(que, distanze, CL_TRUE, CL_MAP_READ, 0, 
 		((nels*(nels+1))/2)*sizeof(float), 1, &calcola_evt, &copy_evt, &err);
-	ocl_check(err,"incodamento MAP"); 
+	ocl_check(err,"queuing MAP"); 
 
 
 	printf("init time:\t%gms\t%gGB/s\n", runtime_ms(init_evt),
