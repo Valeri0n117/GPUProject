@@ -4,17 +4,17 @@ Programma CPU in c con matrice triangolare, distanza fra un punto e se stesso co
 
 n= 1024*8
 n distanze calcolate e salvate(conbinazioni con ripetizioni su 2) 33.558.528
-tempo medio(variazione massima) = 177.47(16.5)
+tempo medio(variazione massima) = 98,6659(3,1131)
 
-165.17
-189.25
-160.73
-193.88
-175.84
-167.49
-189.43
-189.44
-190.85
-164.15
-165.98
+101,779 ms
+98,556 secondi
+98,593 secondi
+98,465 secondi
+97,705 secondi
+100,311 secondi
+98,546 secondi
+99,099 secondi
+95,115 secondi
+98,490 secondi
+
 
