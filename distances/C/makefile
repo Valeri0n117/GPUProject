@@ -1,7 +1,7 @@
 CFLAGS=-O3 -march=native -g -Wall -Wextra
 LDLIBS=-lOpenCL -lm
 
-PROGS=distanzaC
+PROGS=distanzaC distanzaC2
 
 all: $(PROGS)
 

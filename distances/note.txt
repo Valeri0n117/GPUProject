@@ -17,4 +17,19 @@ tempo medio(variazione massima) = 98,6659(3,1131)
 95,115 secondi
 98,490 secondi
 
+nella seconda versione del programma in c viene omesso il calcolo delle distanze fra un punto e se stesso,
+il guadagno in termini di tempo non è notevole, ottimo comunque il guadagno di memomoria pari a 1028*8 float
+
+0.096454 secondi
+0.096050 secondi
+0.096420 secondi
+0.096645 secondi
+0.098970 secondi
+0.096812 secondi
+0.096844 secondi
+0.096712 secondi
+0.096357 secondi
+0.099511 secondi
+
+
 
