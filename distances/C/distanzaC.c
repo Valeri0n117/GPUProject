@@ -19,8 +19,11 @@ void stampa(float *distanze, int n){
 
 
 //TO DO
-void verify(float *distanze, int n){
+void verifyDyagonal(float *distanze, int n){
 
+	for(int i=0; i<n ; i++)
+		if(distanze[((i*(i+1))/2)+i] != 0 )
+			printf("%d not zero \n", i);
 
 }
 
@@ -46,10 +49,13 @@ int main(int argc, char *argv[]){
 
 	start=clock();
 	for(int i=0; i<n; ++i)
-		for(int j=0; j<n; ++j){
-			distanze[( (i*(i+1))/2) +j]= sqrt( pow(p[i*2]-p[j*2], 2.0f) + pow(p[i*2+1]-p[j*2+1], 2.0f) );
+		for(int j=0; j<=i; ++j){
+			distanze[((i*(i+1))/2) +j]= sqrt( pow(p[i*2]-p[j*2], 2.0f) + pow(p[i*2+1]-p[j*2+1], 2.0f) );
 		}
 	stop=clock();
+
+	verifyDyagonal(distanze, n);
+	//stampa(distanze,n);
 
 	printf("%f secondi\n", ((double)(stop-start))/CLOCKS_PER_SEC );
 
@@ -67,5 +73,14 @@ int main(int argc, char *argv[]){
 				printf("%d\n", x);
 			}
 		}
+
+
+		for(int i=0; i<n; ++i)
+		for(int j=0; j<=i; ++j){
+
+			int x=( (i*(i+1))/2) +j;
+			printf("%d\n", x);
+		}
+
 		*/
 
