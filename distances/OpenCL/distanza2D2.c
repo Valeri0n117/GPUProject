@@ -90,11 +90,11 @@ void print(float *dist, int nels){
 int main(int argc, char *argv[]){
 
 	if (argc < 2)
-		error("insert numbers of element");
+		error("insert numbers of elements");
 
 	int nels=atoi(argv[1]);
 	if(nels<= 0)
-		error("number of elements must me positive");
+		error("number of elements must be positive");
 
 	const size_t memsize = sizeof(float)*nels;
 	
