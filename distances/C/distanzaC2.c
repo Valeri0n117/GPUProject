@@ -18,7 +18,6 @@ void stampa(float *distanze, int n){
 }
 
 
-//TO DO
 void verifyDyagonal(float *distanze, int n){
 
 	for(int i=1; i<n ; i++)
