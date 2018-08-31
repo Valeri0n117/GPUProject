@@ -111,7 +111,7 @@ int main(int argc, char *argv[]){
 
 	cl_kernel init_k = clCreateKernel(prog, "init", &err);
 	ocl_check(err, "create kernel init");
-	cl_kernel calcola_k = clCreateKernel(prog, "calcola", &err);
+	cl_kernel calcola_k = clCreateKernel(prog, "calcolaTriangolare", &err);
 	ocl_check(err, "create kernel calcola");
 
 	err = clGetKernelWorkGroupInfo(init_k, d,
@@ -143,6 +143,8 @@ int main(int argc, char *argv[]){
 		(5.0*memsize*memsize)/runtime_ns(calcola_evt));
 	printf("copy time:\t%gms\t%gGB/s\n", runtime_ms(copy_evt),
 		 (1.0*memsize*memsize)/runtime_ns(copy_evt));
+
+	printf("%f\n", input[((1*(1+1))/2)+2000 ]);
 
 	//print(input, nels);
 	

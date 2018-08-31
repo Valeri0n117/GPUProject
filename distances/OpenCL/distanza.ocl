@@ -15,7 +15,7 @@ kernel void init(global float *posizioni, int nels){
 }
 
  //MEDIA CON NELS = 1024*8 24.6 MS  MEMORIA USATA (1024*8)^2
-kernel void calcola2(global float *p, global float * distanze, int nels){
+kernel void calcola(global float *p, global float * distanze, int nels){
 
 	const int j=get_global_id(1);
 	const int i=get_global_id(0);
@@ -31,7 +31,7 @@ kernel void calcola2(global float *p, global float * distanze, int nels){
 	k=i*
 	 */
 
-kernel void calcola(global float *p, global float * distanze, int nels){
+kernel void calcolaTriangolare(global float *p, global float * distanze, int nels){
 
 	const int j=get_global_id(1);
 	const int i=get_global_id(0);

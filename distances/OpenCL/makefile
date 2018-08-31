@@ -1,7 +1,7 @@
 CFLAGS=-O3 -march=native -g -Wall -Wextra
 LDLIBS=-lOpenCL -lm
 
-PROGS=distanza2D2
+PROGS=distanza2DTriangolare distanza2D
 
 all: $(PROGS)
 
