@@ -72,16 +72,26 @@ void printDistances(int n, float *distances){
 
 void assignPoints(int nPoints, int *points, int nClusters, float *centroids){
 
-	float dist;
+	float bestDist, tmpDist;
 
 	for(int i=0; i < nPoints; i++)
-		float dist = sqrt( pow(points[i*3]-centroids[0], 2.0f) + pow(points[i*3+1]-centroids[1], 2.0f));
+
+		float bestDist = sqrt( pow(points[i*3]-centroids[0], 2.0f) + pow(points[i*3+1]-centroids[1], 2.0f));
 		points[i*3+2]=0;
+
 		for(int j=1; j < nClusters, j++){
 
+			tmpDist = sqrt( pow(points[i*3]-centroids[j*2], 2.0f) + pow(points[i*3+1]-centroids[j*2+1], 2.0f));
+
+			if (tmpDist < bestDist){
+				bestDist = tmpDist;
+				points[i*3+2]= j;
+			}
 		}
+}
 
-
+void adjustCentroids(){
+	//TO DO
 }
 
 
