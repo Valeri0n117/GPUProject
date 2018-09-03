@@ -15,23 +15,21 @@ int error(const char *msg) {
 	exit(1);
 }
 
-void initPoints(int n, int *points){
+void initPoints(int n, float *points){
 
 	for (int i=0; i<n; i++){
-		points[i*2]=0;
-		points[i*2+1]=i;
-
-		//srand((unsigned int)time(NULL));
-		//points[i*2]=rand();
-		//points[i*2+1]=rand();
+		//points[i*2]=0;
+		//points[i*2+1]=i;
+		points[i*2]=(float)((double)rand()/(double)(RAND_MAX/999999.999f));
+		points[i*2+1]=(float)((double)rand()/(double)(RAND_MAX/999999.999f));
 	}
 }
 
-void initRandomCentroid(int nClusters, float *centroids, int nPoints, int *points){
+void initRandomCentroid(int nClusters, float *centroids, int nPoints, float *points){
 
 	srand((unsigned int)time(NULL));
 
-	int minX, maxX, minY, maxY;
+	float minX, maxX, minY, maxY;
 	minX = maxX = points[0];
 	minY = maxY = points[1];
 
@@ -43,8 +41,9 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, int *point
 	}
 
 	for (int i=0; i < nClusters; i++){
-		centroids[i*2]= (float)rand()/(float)(RAND_MAX) * maxX + minX;
-		centroids[i*2+1]= (float)rand()/(float)(RAND_MAX) * maxY + minY;	
+		//centroids[i*2]= (float)rand()/(float)(RAND_MAX) * maxX + minX;
+		centroids[i*2]= (float)((double)rand()/(double)(RAND_MAX/maxX)) + minX;
+		centroids[i*2+1]= (float)((double)rand()/(double)(RAND_MAX/maxX)) + minY;	
 	}
 	
 	
@@ -52,11 +51,11 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, int *point
 }
 
 
-void printPoints(int n, int *points){
+void printPoints(int n, float *points){
 
 	for(int i=0; i<n; i++){
-		printf("%i\n", points[i*2]);
-		printf("%i\n", points[i*2+1]);
+		printf("%f\n", points[i*2]);
+		printf("%f\n", points[i*2+1]);
 	}
 }
 
@@ -91,7 +90,7 @@ void assignPoints(int nPoints, int *points, int nClusters, float *centroids, int
 	}
 } */
 
-void assignPoints(int nPoints, int *points, int *clusterID, float *distances, int nClusters, float *centroids){
+void assignPoints(int nPoints, float *points, int *clusterID, float *distances, int nClusters, float *centroids){
 	float tmpDist;
 
 	for (int i=0; i<nPoints; i++){
@@ -113,9 +112,9 @@ void assignPoints(int nPoints, int *points, int *clusterID, float *distances, in
 }
 
 
-void adjustCentroids(int nClusters, float *centroids, int nPoints, int *points, int *clusterID){
-	int *sumX = (int *)malloc(sizeof(int)*nClusters);
-	int *sumY = (int *)malloc(sizeof(int)*nClusters);
+void adjustCentroids(int nClusters, float *centroids, int nPoints, float *points, int *clusterID){
+	float *sumX = (float *)malloc(sizeof(float)*nClusters);
+	float *sumY = (float *)malloc(sizeof(float)*nClusters);
 	int *countPoints = (int*)malloc(sizeof(int)*nClusters);
 
 	for(int i=0; i<nPoints; i++){
@@ -144,13 +143,15 @@ float mediumCentroidsDistance(int nPoints, float *distances){
 
 int main (int argc, char *argv[]){
 
+	srand((unsigned int)time(NULL));
+
 	if (argc < 3)
 		error("USAGE: kmeans nPoints nClusters");
 
 	int nPoints = atoi(argv[1]);
 	int nClusters = atoi(argv[2]);
 
-	int *points = (int *)malloc(sizeof(int)*nPoints*2);  // (X, Y)
+	float *points = (float *)malloc(sizeof(float)*nPoints*2);  // (X, Y)
 	int *clusterID = (int *)malloc(sizeof(int)*nPoints);
 	float *distances = (float *)malloc(sizeof(float)*nPoints);
 	float *centroids = (float *)malloc(sizeof(float)*nClusters*2);   // (X, Y)
@@ -158,6 +159,8 @@ int main (int argc, char *argv[]){
 
 	initPoints(nPoints, points);
 	initRandomCentroid(nClusters, centroids, nPoints, points);
+
+	printPoints(nClusters,centroids);
 
 
 }
