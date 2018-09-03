@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define DIST(xa, ya, xb, yb) sqrt(pow(xa+xb, 2.0f) + pow(ya+yb, 2.0f) )
+#define DIST(xa, ya, xb, yb) sqrt(pow(xa-xb, 2.0f) + pow(ya-yb, 2.0f) )
 
 
 
@@ -18,16 +18,15 @@ int error(const char *msg) {
 void initPoints(int n, float *points){
 
 	for (int i=0; i<n; i++){
-		//points[i*2]=0;
-		//points[i*2+1]=i;
-		points[i*2]=(float)((double)rand()/(double)(RAND_MAX/999999.999f));
-		points[i*2+1]=(float)((double)rand()/(double)(RAND_MAX/999999.999f));
+		//points[i*2]=i*10;
+		//points[i*2+1]=i*10;
+
+		points[i*2]=(float)((double)rand()/(double)(RAND_MAX/9999.0f));
+		points[i*2+1]=(float)((double)rand()/(double)(RAND_MAX/9999.0f));
 	}
 }
 
 void initRandomCentroid(int nClusters, float *centroids, int nPoints, float *points){
-
-	srand((unsigned int)time(NULL));
 
 	float minX, maxX, minY, maxY;
 	minX = maxX = points[0];
@@ -41,7 +40,6 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, float *poi
 	}
 
 	for (int i=0; i < nClusters; i++){
-		//centroids[i*2]= (float)rand()/(float)(RAND_MAX) * maxX + minX;
 		centroids[i*2]= (float)((double)rand()/(double)(RAND_MAX/maxX)) + minX;
 		centroids[i*2+1]= (float)((double)rand()/(double)(RAND_MAX/maxX)) + minY;	
 	}
@@ -54,15 +52,15 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, float *poi
 void printPoints(int n, float *points){
 
 	for(int i=0; i<n; i++){
-		printf("%f\n", points[i*2]);
+		printf("%f  ", points[i*2]);
 		printf("%f\n", points[i*2+1]);
 	}
 }
 
-void printDistances(int n, float *distances){
+void printArray(int n, int *id, float *distances){
 
 	for(int i=0; i<n; i++)
-		printf("%f\n", distances[i] );
+		printf("%i\t%f\n", id[i] , distances[i]);
 }
 
 
@@ -95,12 +93,12 @@ void assignPoints(int nPoints, float *points, int *clusterID, float *distances, 
 
 	for (int i=0; i<nPoints; i++){
 
-		distances[i]= DIST(points[i*2], points[i*2+1], centroids[i*2], centroids[i+2+1]);
+		distances[i]= DIST(points[i*2], points[i*2+1], centroids[0], centroids[1]);
 		clusterID[i]=0;
 
 		for(int j=1; j<nClusters; j++){
 
-			tmpDist=DIST(points[i*2], points[i+2+1], centroids[i*2], centroids[i*2+1]);
+			tmpDist=DIST(points[i*2], points[i*2+1], centroids[j*2], centroids[j*2+1]);
 
 			if(tmpDist < distances[i]){
 				clusterID[i]=j;
@@ -159,8 +157,22 @@ int main (int argc, char *argv[]){
 
 	initPoints(nPoints, points);
 	initRandomCentroid(nClusters, centroids, nPoints, points);
+	
+	assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
+	printf("%f\n", mediumCentroidsDistance(nPoints,distances) );
 
-	printPoints(nClusters,centroids);
+	for(int i=0; i<5; i++){
+		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
+		assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
+		printf("%f\n", mediumCentroidsDistance(nPoints,distances) );
+	}
+
+	/* PRINT FOR TESTING PURPOSE
+	printPoints(nPoints, points);
+	printf("Clusters:\n");
+	printPoints(nClusters, centroids);
+	printArray(nPoints,clusterID,distances);
+	*/
 
 
 }
