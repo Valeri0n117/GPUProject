@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define DIST(xa, ya, xb, yb) sqrt(pow(xa+xb, 2.0f) + pow(ya+yb, 2.0f) )
+
+
+
 clock_t start,stop; 
 
 int error(const char *msg) {
@@ -32,10 +36,10 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, int *point
 	minY = maxY = points[1];
 
 	for (int i=1; i < nPoints; i++){
-		if(points[i*3] < minX) minX = points[i*3];
-		if(points[i*3] > maxX) maxX = points[i*3];
-		if(points[i*3+1] < minY) minY = points[i*3+1];
-		if(points[i*3+1] > maxY) maxY = points[i*3+1];
+		if(points[i*2] < minX) minX = points[i*2];
+		if(points[i*2] > maxX) maxX = points[i*2];
+		if(points[i*2+1] < minY) minY = points[i*2+1];
+		if(points[i*2+1] > maxY) maxY = points[i*2+1];
 	}
 
 	for (int i=0; i < nClusters; i++){
@@ -47,20 +51,12 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, int *point
 
 }
 
-void initDistances(int n, int * points, float *distances){
-
-	for(int i=0; i<n; ++i)
-		for(int j=0; j<i; ++j){
-			distances[((i*(i-1))/2)+j]= sqrt( pow(points[i*3]-points[j*3], 2.0f) + pow(points[i*3+1]-points[j*3+1], 2.0f) );
-		}
-
-}
 
 void printPoints(int n, int *points){
 
 	for(int i=0; i<n; i++){
-		printf("%i\n", points[i*3]);
-		printf("%i\n", points[i*3+1]);
+		printf("%i\n", points[i*2]);
+		printf("%i\n", points[i*2+1]);
 	}
 }
 
@@ -70,11 +66,14 @@ void printDistances(int n, float *distances){
 		printf("%f\n", distances[i] );
 }
 
-void assignPoints(int nPoints, int *points, int nClusters, float *centroids){
+
+/*OLD VERSION
+
+void assignPoints(int nPoints, int *points, int nClusters, float *centroids, int *clusterID, float *distances){
 
 	float bestDist, tmpDist;
 
-	for(int i=0; i < nPoints; i++)
+	for(int i=0; i < nPoints; i++){
 
 		float bestDist = sqrt( pow(points[i*3]-centroids[0], 2.0f) + pow(points[i*3+1]-centroids[1], 2.0f));
 		points[i*3+2]=0;
@@ -88,10 +87,58 @@ void assignPoints(int nPoints, int *points, int nClusters, float *centroids){
 				points[i*3+2]= j;
 			}
 		}
+
+	}
+} */
+
+void assignPoints(int nPoints, int *points, int *clusterID, float *distances, int nClusters, float *centroids){
+	float tmpDist;
+
+	for (int i=0; i<nPoints; i++){
+
+		distances[i]= DIST(points[i*2], points[i*2+1], centroids[i*2], centroids[i+2+1]);
+		clusterID[i]=0;
+
+		for(int j=1; j<nClusters; j++){
+
+			tmpDist=DIST(points[i*2], points[i+2+1], centroids[i*2], centroids[i*2+1]);
+
+			if(tmpDist < distances[i]){
+				clusterID[i]=j;
+				distances[i]=tmpDist;
+			}
+		}
+
+	}
 }
 
-void adjustCentroids(){
-	//TO DO
+
+void adjustCentroids(int nClusters, float *centroids, int nPoints, int *points, int *clusterID){
+	int *sumX = (int *)malloc(sizeof(int)*nClusters);
+	int *sumY = (int *)malloc(sizeof(int)*nClusters);
+	int *countPoints = (int*)malloc(sizeof(int)*nClusters);
+
+	for(int i=0; i<nPoints; i++){
+		sumX[clusterID[i]]+=points[i*2];
+		sumY[clusterID[i]]+=points[i*2+1];
+		countPoints[clusterID[i]]++;
+	}
+
+	for(int j=0; j<nClusters; j++){
+		centroids[j*2] = sumX[j]/countPoints[j];
+		centroids[j*2+1] = sumY[j]/countPoints[j];
+	}
+
+}
+
+float mediumCentroidsDistance(int nPoints, float *distances){
+
+	float sumDist;
+	for(int i=0; i < nPoints; i++){
+		sumDist += distances[i];
+	}
+
+	return sumDist/nPoints;
 }
 
 
@@ -101,25 +148,16 @@ int main (int argc, char *argv[]){
 		error("USAGE: kmeans nPoints nClusters");
 
 	int nPoints = atoi(argv[1]);
-	//int nDistances = (nPoints*(nPoints-1))/2;
 	int nClusters = atoi(argv[2]);
 
-	int *points = (int *)malloc(sizeof(int)*nPoints*3);  // (X, Y, CLUSTER_ID)
+	int *points = (int *)malloc(sizeof(int)*nPoints*2);  // (X, Y)
+	int *clusterID = (int *)malloc(sizeof(int)*nPoints);
+	float *distances = (float *)malloc(sizeof(float)*nPoints);
 	float *centroids = (float *)malloc(sizeof(float)*nClusters*2);   // (X, Y)
-	//float *distances = (float *)malloc(sizeof(float)*nDistances);
 
 
 	initPoints(nPoints, points);
 	initRandomCentroid(nClusters, centroids, nPoints, points);
-
-
-	//printPoints(nPoints, points);
-	//initDistances(nDistances,points, distances);
-	//printDistances(nDistances, distances);
-
-
-
-
 
 
 }
