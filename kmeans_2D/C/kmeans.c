@@ -21,8 +21,8 @@ void initPoints(int n, float *points){
 		//points[i*2]=i*10;
 		//points[i*2+1]=i*10;
 
-		points[i*2]=(float)((double)rand()/(double)(RAND_MAX/9999.0f));
-		points[i*2+1]=(float)((double)rand()/(double)(RAND_MAX/9999.0f));
+		points[i*2]=(float)((double)rand()/(double)(RAND_MAX/999999.0f));
+		points[i*2+1]=(float)((double)rand()/(double)(RAND_MAX/999999.0f));
 	}
 }
 
@@ -159,13 +159,22 @@ int main (int argc, char *argv[]){
 	initRandomCentroid(nClusters, centroids, nPoints, points);
 	
 	assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
-	printf("%f\n", mediumCentroidsDistance(nPoints,distances) );
+	float m=mediumCentroidsDistance(nPoints,distances);
+	//printf("%f\n", m );
 
-	for(int i=0; i<5; i++){
+
+	float new=mediumCentroidsDistance(nPoints,distances);
+
+	do{
+		printf("%f\n", new);
+		m=new;
 		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
 		assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
-		printf("%f\n", mediumCentroidsDistance(nPoints,distances) );
-	}
+		new=mediumCentroidsDistance(nPoints,distances);
+		//printf("%f\n", new);
+	}while(new<m);
+
+	printf("%f\n", new);
 
 	/* PRINT FOR TESTING PURPOSE
 	printPoints(nPoints, points);
