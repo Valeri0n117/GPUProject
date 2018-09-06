@@ -15,6 +15,13 @@ int error(const char *msg) {
 	exit(1);
 }
 
+void setIntArrayToNull(int nels, int* array){
+
+	for(int i = 0; i < nels; i++)
+		array[i]= -1;
+
+}
+
 void initPoints(int n, float *points){
 
 	for (int i=0; i<n; i++){
@@ -43,9 +50,6 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, float *poi
 		centroids[i*2]= (float)((double)rand()/(double)(RAND_MAX/maxX)) + minX;
 		centroids[i*2+1]= (float)((double)rand()/(double)(RAND_MAX/maxX)) + minY;	
 	}
-	
-	
-
 }
 
 
@@ -55,12 +59,15 @@ void printPoints(int n, float *points){
 		printf("%f  ", points[i*2]);
 		printf("%f\n", points[i*2+1]);
 	}
+
+	printf("\n");
 }
 
 void printArray(int n, int *id, float *distances){
 
 	for(int i=0; i<n; i++)
 		printf("%i\t%f\n", id[i] , distances[i]);
+	printf("\n");
 }
 
 
@@ -88,13 +95,17 @@ void assignPoints(int nPoints, int *points, int nClusters, float *centroids, int
 	}
 } */
 
-void assignPoints(int nPoints, float *points, int *clusterID, float *distances, int nClusters, float *centroids){
+_Bool assignPoints(int nPoints, float *points, int *clusterID, float *distances, int nClusters, float *centroids){
+
 	float tmpDist;
+	int oldClusterID;
+	_Bool changes = 0;
 
 	for (int i=0; i<nPoints; i++){
 
+		oldClusterID = clusterID[i];
+		clusterID[i]=0;		
 		distances[i]= DIST(points[i*2], points[i*2+1], centroids[0], centroids[1]);
-		clusterID[i]=0;
 
 		for(int j=1; j<nClusters; j++){
 
@@ -105,8 +116,16 @@ void assignPoints(int nPoints, float *points, int *clusterID, float *distances, 
 				distances[i]=tmpDist;
 			}
 		}
-
+		
+		if(oldClusterID != clusterID[i] ){
+					changes=1;
+				}
 	}
+
+	//printPoints(nClusters, centroids);
+	printf("%i\n", changes);
+
+	return changes;
 }
 
 
@@ -138,13 +157,50 @@ float mediumCentroidsDistance(int nPoints, float *distances){
 	return sumDist/nPoints;
 }
 
+int execToTermination(int nPoints, float *points, int *clusterID, 
+	float *distances, int nClusters, float *centroids){
+	
+	setIntArrayToNull(nPoints, clusterID);
+	_Bool changes = 1;
+	int iteration = 0;
+
+	while(changes){
+
+		changes = assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
+		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
+		++iteration;
+
+	}
+
+	return iteration;
+
+}
+
+int execToThreshold(int threshold, int nPoints, float *points, int *clusterID, 
+	float *distances, int nClusters, float *centroids){
+
+	setIntArrayToNull(nPoints, clusterID);
+	_Bool changes = 1;
+	int iteration = 0;
+
+	while(changes && iteration < threshold){
+
+		changes = assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
+		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
+		++iteration;
+
+	}
+
+	return iteration;
+	//TO DO
+}
 
 int main (int argc, char *argv[]){
 
 	srand((unsigned int)time(NULL));
 
-	if (argc < 3)
-		error("USAGE: kmeans nPoints nClusters");
+	if (argc < 3 || argc > 4)
+		error("USAGE: kmeans nPoints nClusters execution_limit(optional)");
 
 	int nPoints = atoi(argv[1]);
 	int nClusters = atoi(argv[2]);
@@ -154,10 +210,22 @@ int main (int argc, char *argv[]){
 	float *distances = (float *)malloc(sizeof(float)*nPoints);
 	float *centroids = (float *)malloc(sizeof(float)*nClusters*2);   // (X, Y)
 
-
 	initPoints(nPoints, points);
 	initRandomCentroid(nClusters, centroids, nPoints, points);
+
+	int iteration;
+	if(argc == 3)
+		iteration = execToTermination(nPoints, points, clusterID, distances, 
+					nClusters, centroids);
+	else
+		iteration = execToThreshold(atoi(argv[3]) ,nPoints, points, clusterID, distances, 
+					nClusters, centroids);
+
+	printf("number of iteration: %i\n", iteration);
+
+
 	
+	/*
 	assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
 	float m=mediumCentroidsDistance(nPoints,distances);
 	//printf("%f\n", m );
@@ -166,12 +234,12 @@ int main (int argc, char *argv[]){
 	float new=mediumCentroidsDistance(nPoints,distances);
 
 	do{
-		printf("%f\n", new);
+		//printf("%f\n", new);
 		m=new;
 		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
 		assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
 		new=mediumCentroidsDistance(nPoints,distances);
-		//printf("%f\n", new);
+		printf("%f\n", new);
 	}while(new<m);
 
 	printf("%f\n", new);
