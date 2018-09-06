@@ -184,13 +184,19 @@ int main (int argc, char *argv[]){
 	initRandomCentroid(nClusters, centroids, nPoints, points);
 
 	int iteration;
-	if(argc == 3)
+	if(argc == 3){
+		start=clock();
 		iteration = execToTermination(nPoints, points, clusterID, distances, 
 					nClusters, centroids);
-	else
+		stop=clock();
+	}else{
+		start=clock();
 		iteration = execToThreshold(atoi(argv[3]) ,nPoints, points, clusterID, distances, 
 					nClusters, centroids);
+		stop=clock();
+	}
 
 	printf("number of iteration: %i\n", iteration);
+	printf("%f secondi\n", ((double)(stop-start))/CLOCKS_PER_SEC );
 
 }
