@@ -52,7 +52,6 @@ void initRandomCentroid(int nClusters, float *centroids, int nPoints, float *poi
 	}
 }
 
-
 void printPoints(int n, float *points){
 
 	for(int i=0; i<n; i++){
@@ -69,31 +68,6 @@ void printArray(int n, int *id, float *distances){
 		printf("%i\t%f\n", id[i] , distances[i]);
 	printf("\n");
 }
-
-
-/*OLD VERSION
-
-void assignPoints(int nPoints, int *points, int nClusters, float *centroids, int *clusterID, float *distances){
-
-	float bestDist, tmpDist;
-
-	for(int i=0; i < nPoints; i++){
-
-		float bestDist = sqrt( pow(points[i*3]-centroids[0], 2.0f) + pow(points[i*3+1]-centroids[1], 2.0f));
-		points[i*3+2]=0;
-
-		for(int j=1; j < nClusters, j++){
-
-			tmpDist = sqrt( pow(points[i*3]-centroids[j*2], 2.0f) + pow(points[i*3+1]-centroids[j*2+1], 2.0f));
-
-			if (tmpDist < bestDist){
-				bestDist = tmpDist;
-				points[i*3+2]= j;
-			}
-		}
-
-	}
-} */
 
 _Bool assignPoints(int nPoints, float *points, int *clusterID, float *distances, int nClusters, float *centroids){
 
@@ -121,9 +95,6 @@ _Bool assignPoints(int nPoints, float *points, int *clusterID, float *distances,
 					changes=1;
 				}
 	}
-
-	//printPoints(nClusters, centroids);
-	printf("%i\n", changes);
 
 	return changes;
 }
@@ -192,7 +163,6 @@ int execToThreshold(int threshold, int nPoints, float *points, int *clusterID,
 	}
 
 	return iteration;
-	//TO DO
 }
 
 int main (int argc, char *argv[]){
@@ -222,34 +192,5 @@ int main (int argc, char *argv[]){
 					nClusters, centroids);
 
 	printf("number of iteration: %i\n", iteration);
-
-
-	
-	/*
-	assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
-	float m=mediumCentroidsDistance(nPoints,distances);
-	//printf("%f\n", m );
-
-
-	float new=mediumCentroidsDistance(nPoints,distances);
-
-	do{
-		//printf("%f\n", new);
-		m=new;
-		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
-		assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
-		new=mediumCentroidsDistance(nPoints,distances);
-		printf("%f\n", new);
-	}while(new<m);
-
-	printf("%f\n", new);
-
-	/* PRINT FOR TESTING PURPOSE
-	printPoints(nPoints, points);
-	printf("Clusters:\n");
-	printPoints(nClusters, centroids);
-	printArray(nPoints,clusterID,distances);
-	*/
-
 
 }
