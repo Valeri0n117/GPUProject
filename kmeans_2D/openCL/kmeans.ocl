@@ -1,0 +1,20 @@
+kernel void initPoints(){
+	//TO DO
+}
+
+kernel void initClusterID(){
+	//TO DO??
+}
+
+kernel void initRandomCentroids(){
+	//TO DO
+}
+
+kernel void/*?*/ assignPoints(){
+	//TO DO
+}
+
+kernel void adjustCentroids(){  //SHOULD I SPLIT IT?
+	//TO DO
+}
+

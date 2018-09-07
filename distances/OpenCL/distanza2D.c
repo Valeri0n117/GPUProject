@@ -100,11 +100,11 @@ void print(float *dist, int nels){
 int main(int argc, char *argv[]){
 
 	if (argc < 2)
-		error("inserire il numero di elementi");
+		error("insert number of elements");
 
 	int nels=atoi(argv[1]);
 	if(nels<= 0)
-		error("il numero di elementi deve essere maggiore di 0");
+		error("number of elements must be positive");
 
 	const size_t memsize = sizeof(float)*nels;
 	
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]){
 	cl_program prog = create_program("distanza.ocl", ctx, d);
 	cl_int err;
 
-	//estrazione kernel
+	//kernel extration
 
 	cl_kernel init_k = clCreateKernel(prog, "init", &err);
 	ocl_check(err, "create kernel init");
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]){
 		CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 		sizeof(preferred_wg_calcola), &preferred_wg_calcola, NULL);
 
-	//allocazione memoria
+	//memory allocation
 
 	cl_mem posizioni= clCreateBuffer(ctx, CL_MEM_READ_WRITE, memsize*2 , NULL, &err);
 	ocl_check(err, "allocazione posizioni");

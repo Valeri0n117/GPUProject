@@ -116,6 +116,8 @@ void adjustCentroids(int nClusters, float *centroids, int nPoints, float *points
 		centroids[j*2+1] = sumY[j]/countPoints[j];
 	}
 
+	//de allocation memory TO ADD!!
+
 }
 
 float mediumCentroidsDistance(int nPoints, float *distances){
