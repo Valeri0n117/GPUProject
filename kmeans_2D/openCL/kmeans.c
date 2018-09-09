@@ -6,7 +6,8 @@ int error(const char *msg) {
 	exit(1);
 }
 
-
+/*  for this project the initialization spped is irrilevant, is more important to have a pseudo random set generated with a seed because
+	we need to compare the C version and the OpenCL version
 size_t preferred_wg_initPoints;
 
 cl_event initPoints(cl_command_queue que, cl_kernel initPoints_k, cl_int nPoints,
@@ -14,6 +15,7 @@ cl_event initPoints(cl_command_queue que, cl_kernel initPoints_k, cl_int nPoints
 	//TO DO
 }
 
+*/
 
 size_t preferred_wg_initClusterID;
 
@@ -81,8 +83,10 @@ int main(int argc, char *argv[]){
 
 
 	//loading kernels
+	
+/*	see line 9
 	cl_kernel initPoints_k = clCreateKernel(prog, "initPoints", &err);
-	ocl_check(err, "create kernel initPoints");
+	ocl_check(err, "create kernel initPoints"); */
 
 	cl_kernel initClusterID_k = clCreateKernel(prog, "initPoints", &err);
 	ocl_check(err, "create kernel initClusterID");
@@ -96,8 +100,6 @@ int main(int argc, char *argv[]){
 	cl_kernel adjustCentroids_k = clCreateKernel(prog, "adjustCentroids", &err);
 	ocl_check(err, "create kernel adjustCentroids");
 	
-
-
 
 
 

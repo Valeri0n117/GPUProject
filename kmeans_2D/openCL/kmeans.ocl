@@ -1,5 +1,6 @@
-kernel void initPoints(){
-	//TO DO
+kernel void initPoints(cl_int nPoints, cl_mem points){
+
+	
 }
 
 kernel void initClusterID(){
