@@ -1,14 +1,19 @@
-kernel void initPoints(cl_int nPoints, cl_mem points){
+kernel void initPoints(int nPoints, global float *points){
 	//NOPE
 }
 
-kernel void initClusterID(){
-	//TO DO??
+kernel void initClusterID( int nPoints, global float *clusterID){
+		
+		const int i = get_global_id(0);
+
+		clusterID[i] = 0;
 }
 
-kernel void initRandomCentroids(){
+
+//more research (?)
+/*kernel void findMinMax(int nPoints, float points){
 	//TO DO
-}
+} */ 
 
 kernel void/*?*/ assignPoints(){
 	//TO DO
