@@ -6,16 +6,6 @@ int error(const char *msg) {
 	exit(1);
 }
 
-/*  for this project the initialization speed is irrilevant, is more important to have a pseudo random set generated with a seed because
-	we need to compare the C version and the OpenCL version
-size_t preferred_wg_initPoints;
-
-cl_event initPoints(cl_command_queue que, cl_kernel initPoints_k, cl_int nPoints,
-						cl_mem points){
-	//TO DO
-}
-
-*/
 
 void initPoints(int n, float *points){
 
@@ -49,15 +39,6 @@ cl_event initClusterID(cl_command_queue que, cl_kernel initClusterID_k, cl_int n
 	return initClusterID_evt;
 }
 
-/* more research needed
-//to do "how many iteration will avoid a min/max ceck on centroid's initialization?"
-size_t preferred_wg_initRandomCentroids;
-
-cl_event initRandomCentroids(cl_command_queue que, cl_kernel initRandomCentroids_k, cl_int nClusters,
-								cl_mem centroid_d, cl_int nPoints, cl_mem points_d ){
-	//TO DO
-} */
-
 void initRandomCentroids(int nClusters, float *centroids, int nPoints, float *points){
 
 	float minX, maxX, minY, maxY;
@@ -82,13 +63,64 @@ size_t preferred_wg_assignPoints;
 
 cl_event assignPoints(cl_command_queue que, cl_kernel assignPoints_k, cl_int nPoints, cl_mem points_d,
 						cl_mem clusterID_d, cl_mem distances_d, cl_int nClusters, cl_mem centroids_d, cl_int moreToDo){
-	//TO DO
+	
+	cl_int err;
+	size_t gws[] = {round_mul_up(nPoints, preferred_wg_assignPoints)};
+
+	cl_event assignPoints_evt;
+
+	err = clSetKernelArg(assignPoints_k, 0, sizeof(int), &nPoints);
+	ocl_check(err, "set assignPoints arg 0");
+	err = clSetKernelArg(assignPoints_k, 1, sizeof(float)*nPoints*2, &points_d);
+	ocl_check(err, "set assignPoints arg 1");
+	err = clSetKernelArg(assignPoints_k, 2, sizeof(int)*nPoints, &clusterID_d);
+	ocl_check(err, "set assignPoints arg 2");
+	err = clSetKernelArg(assignPoints_k, 3, sizeof(float)*nPoints, &distances_d);
+	ocl_check(err, "set assignPoints arg 3");
+	err = clSetKernelArg(assignPoints_k, 4, sizeof(int), &nClusters);
+	ocl_check(err, "set assignPoints arg 4");
+	err = clSetKernelArg(assignPoints_k, 5, sizeof(float)*2*nClusters, &centroids_d);
+	ocl_check(err, "set assignPoints arg 5");
+	err = clSetKernelArg(assignPoints_k, 6, sizeof(int), &moreToDo);
+	ocl_check(err, "set assignPoints arg 6");
+
+	err= clEnqueueNDRangeKernel(que, assignPoints_k,
+		1, NULL, gws, NULL, //griglia di lancio
+		0, NULL, &assignPoints_evt);  //waiting list
+	ocl_check(err,"launching assignPoints");
+
+	return assignPoints_evt;
+
 }
 
 
-size_t preferred_wg_adjustCentroids(cl_command_queue que, cl_kernel adjustCentroids_k, cl_int nClusters,
-									cl_mem centroids, cl_int nPoints, cl_mem points, cl_mem clusterID){
-	//TO DO
+size_t preferred_wg_adjustCentroids;
+
+cl_event adjustCentroids(cl_command_queue que, cl_kernel adjustCentroids_k, cl_int nClusters,
+									cl_mem centroids_d, cl_int nPoints, cl_mem points_d, cl_mem clusterID_d){
+
+	cl_int err;
+	size_t gws[] = {round_mul_up(nClusters, preferred_wg_assignPoints)};
+
+	cl_event assignPoints_evt;
+
+	err = clSetKernelArg(adjustCentroids_k, 0, sizeof(int), &nClusters);
+	ocl_check(err, "set adjustCentroids arg 0");
+	err = clSetKernelArg(adjustCentroids_k, 1, sizeof(float)*nClusters*2, &centroids_d);
+	ocl_check(err, "set adjustCentroids arg 1");
+	err = clSetKernelArg(adjustCentroids_k, 2, sizeof(int), &nPoints);
+	ocl_check(err, "set adjustCentroids arg 2");
+	err = clSetKernelArg(adjustCentroids_k, 3, sizeof(float)*nPoints*2, &points_d);
+	ocl_check(err, "set adjustCentroids arg 3");
+	err = clSetKernelArg(adjustCentroids_k, 4, sizeof(int)*nPoints, &clusterID_d);
+	ocl_check(err, "set adjustCentroids arg 4");
+
+	err= clEnqueueNDRangeKernel(que, adjustCentroids_k,
+		1, NULL, gws, NULL, //griglia di lancio
+		0, NULL, &assignPoints_evt);  //waiting list
+	ocl_check(err,"launching adjustCentroids");
+
+
 }
 
 
@@ -113,14 +145,14 @@ int main(int argc, char *argv[]){
 	//memory allocation
 
 	float *points = (float *)malloc(sizeof(float)*nPoints*2);
-	int *clusterID = (int *)malloc(sizeof(int)*nPoints);
+	float *centroids = (float *)malloc(sizeof(float)*nClusters*2);
 	initPoints(nPoints, points);
-	initRandomCentroids(nClusters, clusterID, nPoints, points);
+	initRandomCentroids(nClusters, centroids, nPoints, points);
 
 	cl_mem points_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*nPoints*2, points, &err);
 	ocl_check(err, "allocation of points");
 
-	cl_mem clusterID_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(int)*nPoints, NULL, &err);
+	cl_mem centroids_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*nClusters*2, centroids, &err);
 	ocl_check(err, "allocation of clusterID");
 	//starting from here, the host copy of "points" and "clusterID" is no more needed, I will add a free() after some study of clCreateBuffer's flags
 
@@ -128,22 +160,14 @@ int main(int argc, char *argv[]){
 	cl_mem distances_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(float)*nPoints, NULL, &err);
 	ocl_check(err, "allocation of distances");
 
-	cl_mem centroids_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(float)*nClusters, NULL, &err);
+	cl_mem clusterID_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(int)*nPoints, NULL, &err);
 	ocl_check(err, "allocation of centroids");
 
 
 	//loading kernels
-	
-/*	see line 9
-	cl_kernel initPoints_k = clCreateKernel(prog, "initPoints", &err);
-	ocl_check(err, "create kernel initPoints"); */
 
-	cl_kernel initClusterID_k = clCreateKernel(prog, "initPoints", &err);
+	cl_kernel initClusterID_k = clCreateKernel(prog, "initClusterID", &err);
 	ocl_check(err, "create kernel initClusterID");
-
-	/* more search
-	cl_kernel initRandomCentroids_k = clCreateKernel(prog, "initRandomCentroids", &err);
-	ocl_check(err, "create kernel initRandomCentroids"); */
 
 	cl_kernel assignPoints_k = clCreateKernel(prog, "assignPoints", &err);
 	ocl_check(err, "create kernel assignPoints");
@@ -155,27 +179,17 @@ int main(int argc, char *argv[]){
 
 	//estimating workgroup preferred size
 
-/*	see line 9
-	err = clGetKernelWorkGroupInfo(initPoints_k, d, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-									sizeof(preferred_wg_initPoints), &preferred_wg_initPoints, NULL);
-	ocl_check(err, "WG info initPoints"); */
-
 	err = clGetKernelWorkGroupInfo(initClusterID_k, d, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 									sizeof(preferred_wg_initClusterID), &preferred_wg_initClusterID, NULL);
 	ocl_check(err, "WG info initClusterID");
-
-	/* err = clGetKernelWorkGroupInfo(initRandomCentroids_k, d, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-									sizeof(preferred_wg_initRandomCentroids), &preferred_wg_initRandomCentroids, NULL);
-	ocl_check(err, "WG info initRandomCentroids"); */
-
-	/*
+	
 	err = clGetKernelWorkGroupInfo(assignPoints_k, d, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 									sizeof(preferred_wg_assignPoints), &preferred_wg_assignPoints, NULL);
 	ocl_check(err, "WG info assignPoints");
 
 	err = clGetKernelWorkGroupInfo(adjustCentroids_k, d, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 									sizeof(preferred_wg_adjustCentroids), &preferred_wg_adjustCentroids, NULL);
-	ocl_check(err, "WG info adjustCentroids"); */
+	ocl_check(err, "WG info adjustCentroids"); 
 
 
 

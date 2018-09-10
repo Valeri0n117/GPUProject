@@ -1,25 +1,60 @@
-kernel void initPoints(int nPoints, global float *points){
-	//NOPE
-}
 
 kernel void initClusterID( int nPoints, global float *clusterID){
 		
 		const int i = get_global_id(0);
 
-		clusterID[i] = 0;
+		clusterID[i] = -1;
 }
 
 
-//more research (?)
-/*kernel void findMinMax(int nPoints, float points){
-	//TO DO
-} */ 
 
-kernel void/*?*/ assignPoints(){
-	//TO DO
+#define DIST(xa, ya, xb, yb) sqrt(pow(xa-xb, 2.0f) + pow(ya-yb, 2.0f) )
+
+kernel void assignPoints(int nPoints, global float *points, global int *clusterID, 
+							global float *distances, int nCluster, global float *centroids, global/*?*/ int *moreToDo){
+
+	int i = get_global_id(0);
+	float tmpDist;
+	int oldClusterID = clusterID[i];
+	clusterID[i] = 0;
+	distances[i]= DIST(points[i*2], points[i*2+1], centroids[0], centroids[1]);
+
+	for (int j=1; j < nCluster; ++j){
+
+		tmpDist=DIST(points[i*2], points[i*2+1], centroids[j*2], centroids[j*2+1]);
+
+		if(tmpDist < distances[i]){
+				clusterID[i]=j;
+				distances[i]=tmpDist;
+			}
+	}
+
+	if(oldClusterID != clusterID[i] )
+		++moreToDo;
+
+
 }
 
-kernel void adjustCentroids(){  //SHOULD I SPLIT IT?
-	//TO DO
+
+//is it good in any case?
+kernel void adjustCentroids(int nCluster, global float *centroids, int nPoints, global float *points, global int *clusterID){
+	int i = get_global_id(0);
+
+	centroids[i*2] = 0;
+	centroids[i*2+1] = 0;
+	int count = 0;
+
+	for(int j = 0; j < nPoints; ++j){
+		if(clusterID[j] == i){
+			centroids[i*2] += points[j*2];
+			centroids[i*2+1] += points[j*2+1];
+			++count;
+		}
+	}
+
+	centroids[i*2] = centroids[i*2]/count;
+	centroids[i*2+1] = centroids[i*2+1]/count;
+
+
 }
 
