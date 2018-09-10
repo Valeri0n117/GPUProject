@@ -62,16 +62,9 @@ void printPoints(int n, float *points){
 	printf("\n");
 }
 
-void printArray(int n, int *id, float *distances){
+_Bool assignPoints(int nPoints, float *points, int *clusterID, int nClusters, float *centroids){
 
-	for(int i=0; i<n; i++)
-		printf("%i\t%f\n", id[i] , distances[i]);
-	printf("\n");
-}
-
-_Bool assignPoints(int nPoints, float *points, int *clusterID, float *distances, int nClusters, float *centroids){
-
-	float tmpDist;
+	float tmpDist, bestDist;
 	int oldClusterID;
 	_Bool changes = 0;
 
@@ -79,15 +72,15 @@ _Bool assignPoints(int nPoints, float *points, int *clusterID, float *distances,
 
 		oldClusterID = clusterID[i];
 		clusterID[i]=0;		
-		distances[i]= DIST(points[i*2], points[i*2+1], centroids[0], centroids[1]);
+		bestDist= DIST(points[i*2], points[i*2+1], centroids[0], centroids[1]);
 
 		for(int j=1; j<nClusters; j++){
 
 			tmpDist=DIST(points[i*2], points[i*2+1], centroids[j*2], centroids[j*2+1]);
 
-			if(tmpDist < distances[i]){
+			if(tmpDist < bestDist){
 				clusterID[i]=j;
-				distances[i]=tmpDist;
+				bestDist=tmpDist;
 			}
 		}
 		
@@ -119,7 +112,7 @@ void adjustCentroids(int nClusters, float *centroids, int nPoints, float *points
 	//de allocation memory TO ADD!!
 
 }
-
+ /* to rework
 float mediumCentroidsDistance(int nPoints, float *distances){
 
 	float sumDist;
@@ -128,10 +121,10 @@ float mediumCentroidsDistance(int nPoints, float *distances){
 	}
 
 	return sumDist/nPoints;
-}
+} */
 
 int execToTermination(int nPoints, float *points, int *clusterID, 
-	float *distances, int nClusters, float *centroids){
+	 int nClusters, float *centroids){
 	
 	setIntArrayToNull(nPoints, clusterID);
 	_Bool changes = 1;
@@ -139,7 +132,7 @@ int execToTermination(int nPoints, float *points, int *clusterID,
 
 	while(changes){
 
-		changes = assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
+		changes = assignPoints(nPoints, points, clusterID, nClusters, centroids);
 		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
 		++iteration;
 
@@ -150,7 +143,7 @@ int execToTermination(int nPoints, float *points, int *clusterID,
 }
 
 int execToThreshold(int threshold, int nPoints, float *points, int *clusterID, 
-	float *distances, int nClusters, float *centroids){
+	 int nClusters, float *centroids){
 
 	setIntArrayToNull(nPoints, clusterID);
 	_Bool changes = 1;
@@ -158,7 +151,7 @@ int execToThreshold(int threshold, int nPoints, float *points, int *clusterID,
 
 	while(changes && iteration < threshold){
 
-		changes = assignPoints(nPoints, points, clusterID, distances, nClusters, centroids);
+		changes = assignPoints(nPoints, points, clusterID, nClusters, centroids);
 		adjustCentroids(nClusters, centroids, nPoints, points, clusterID);
 		++iteration;
 
@@ -179,7 +172,6 @@ int main (int argc, char *argv[]){
 
 	float *points = (float *)malloc(sizeof(float)*nPoints*2);  // (X, Y)
 	int *clusterID = (int *)malloc(sizeof(int)*nPoints);
-	float *distances = (float *)malloc(sizeof(float)*nPoints);
 	float *centroids = (float *)malloc(sizeof(float)*nClusters*2);   // (X, Y)
 
 	initPoints(nPoints, points);
@@ -188,12 +180,12 @@ int main (int argc, char *argv[]){
 	int iteration;
 	if(argc == 3){
 		start=clock();
-		iteration = execToTermination(nPoints, points, clusterID, distances, 
+		iteration = execToTermination(nPoints, points, clusterID, 
 					nClusters, centroids);
 		stop=clock();
 	}else{
 		start=clock();
-		iteration = execToThreshold(atoi(argv[3]) ,nPoints, points, clusterID, distances, 
+		iteration = execToThreshold(atoi(argv[3]) ,nPoints, points, clusterID, 
 					nClusters, centroids);
 		stop=clock();
 	}

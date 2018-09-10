@@ -62,7 +62,7 @@ void initRandomCentroids(int nClusters, float *centroids, int nPoints, float *po
 size_t preferred_wg_assignPoints;
 
 cl_event assignPoints(cl_command_queue que, cl_kernel assignPoints_k, cl_int nPoints, cl_mem points_d,
-						cl_mem clusterID_d, cl_mem distances_d, cl_int nClusters, cl_mem centroids_d, cl_int moreToDo){
+						cl_mem clusterID_d, cl_int nClusters, cl_mem centroids_d, cl_int moreToDo){
 	
 	cl_int err;
 	size_t gws[] = {round_mul_up(nPoints, preferred_wg_assignPoints)};
@@ -75,14 +75,12 @@ cl_event assignPoints(cl_command_queue que, cl_kernel assignPoints_k, cl_int nPo
 	ocl_check(err, "set assignPoints arg 1");
 	err = clSetKernelArg(assignPoints_k, 2, sizeof(int)*nPoints, &clusterID_d);
 	ocl_check(err, "set assignPoints arg 2");
-	err = clSetKernelArg(assignPoints_k, 3, sizeof(float)*nPoints, &distances_d);
+	err = clSetKernelArg(assignPoints_k, 3, sizeof(int), &nClusters);
 	ocl_check(err, "set assignPoints arg 3");
-	err = clSetKernelArg(assignPoints_k, 4, sizeof(int), &nClusters);
+	err = clSetKernelArg(assignPoints_k, 4, sizeof(float)*2*nClusters, &centroids_d);
 	ocl_check(err, "set assignPoints arg 4");
-	err = clSetKernelArg(assignPoints_k, 5, sizeof(float)*2*nClusters, &centroids_d);
+	err = clSetKernelArg(assignPoints_k, 5, sizeof(int), &moreToDo);
 	ocl_check(err, "set assignPoints arg 5");
-	err = clSetKernelArg(assignPoints_k, 6, sizeof(int), &moreToDo);
-	ocl_check(err, "set assignPoints arg 6");
 
 	err= clEnqueueNDRangeKernel(que, assignPoints_k,
 		1, NULL, gws, NULL, //griglia di lancio
@@ -155,10 +153,6 @@ int main(int argc, char *argv[]){
 	cl_mem centroids_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, sizeof(float)*nClusters*2, centroids, &err);
 	ocl_check(err, "allocation of clusterID");
 	//starting from here, the host copy of "points" and "clusterID" is no more needed, I will add a free() after some study of clCreateBuffer's flags
-
-
-	cl_mem distances_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(float)*nPoints, NULL, &err);
-	ocl_check(err, "allocation of distances");
 
 	cl_mem clusterID_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(int)*nPoints, NULL, &err);
 	ocl_check(err, "allocation of centroids");
