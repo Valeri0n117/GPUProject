@@ -62,7 +62,7 @@ void initRandomCentroids(int nClusters, float *centroids, int nPoints, float *po
 size_t preferred_wg_assignPoints;
 
 cl_event assignPoints(cl_command_queue que, cl_kernel assignPoints_k, cl_int nPoints, cl_mem points_d,
-						cl_mem clusterID_d, cl_int nClusters, cl_mem centroids_d, cl_int moreToDo){
+						cl_mem clusterID_d, cl_int nClusters, cl_mem centroids_d, cl_mem moreToDo){
 	
 	cl_int err;
 	size_t gws[] = {round_mul_up(nPoints, preferred_wg_assignPoints)};
@@ -71,15 +71,15 @@ cl_event assignPoints(cl_command_queue que, cl_kernel assignPoints_k, cl_int nPo
 
 	err = clSetKernelArg(assignPoints_k, 0, sizeof(int), &nPoints);
 	ocl_check(err, "set assignPoints arg 0");
-	err = clSetKernelArg(assignPoints_k, 1, sizeof(float)*nPoints*2, &points_d);
+	err = clSetKernelArg(assignPoints_k, 1, sizeof(points_d), &points_d);
 	ocl_check(err, "set assignPoints arg 1");
-	err = clSetKernelArg(assignPoints_k, 2, sizeof(int)*nPoints, &clusterID_d);
+	err = clSetKernelArg(assignPoints_k, 2, sizeof(clusterID_d), &clusterID_d);
 	ocl_check(err, "set assignPoints arg 2");
 	err = clSetKernelArg(assignPoints_k, 3, sizeof(int), &nClusters);
 	ocl_check(err, "set assignPoints arg 3");
-	err = clSetKernelArg(assignPoints_k, 4, sizeof(float)*2*nClusters, &centroids_d);
+	err = clSetKernelArg(assignPoints_k, 4, sizeof(centroids_d), &centroids_d);
 	ocl_check(err, "set assignPoints arg 4");
-	err = clSetKernelArg(assignPoints_k, 5, sizeof(int), &moreToDo);
+	err = clSetKernelArg(assignPoints_k, 5, sizeof(moreToDo), &moreToDo);
 	ocl_check(err, "set assignPoints arg 5");
 
 	err= clEnqueueNDRangeKernel(que, assignPoints_k,
@@ -89,6 +89,26 @@ cl_event assignPoints(cl_command_queue que, cl_kernel assignPoints_k, cl_int nPo
 
 	return assignPoints_evt;
 
+}
+
+cl_event setMoreToDo(cl_command_queue que, cl_kernel setMoreToDo_k, cl_mem moreToDo_d, cl_int set){
+
+	cl_int err;
+	size_t gws[] = {1};
+
+	cl_event setMoreToDo_evt;
+
+	err = clSetKernelArg(setMoreToDo_k, 0, sizeof(moreToDo_d), &moreToDo_d);
+	ocl_check(err, "set setMoreToDo arg 0");
+	err = clSetKernelArg(setMoreToDo_k, 1, sizeof(int), &set);
+	ocl_check(err, "set setMoreToDo arg 1");
+
+	err = clEnqueueNDRangeKernel(que, setMoreToDo_k,
+									1, NULL, gws, NULL,
+									0, NULL, &setMoreToDo_evt);
+	ocl_check(err, "launching setMoreToDo");
+
+	return setMoreToDo_evt;
 }
 
 
@@ -104,13 +124,13 @@ cl_event adjustCentroids(cl_command_queue que, cl_kernel adjustCentroids_k, cl_i
 
 	err = clSetKernelArg(adjustCentroids_k, 0, sizeof(int), &nClusters);
 	ocl_check(err, "set adjustCentroids arg 0");
-	err = clSetKernelArg(adjustCentroids_k, 1, sizeof(float)*nClusters*2, &centroids_d);
+	err = clSetKernelArg(adjustCentroids_k, 1, sizeof(centroids_d), &centroids_d);
 	ocl_check(err, "set adjustCentroids arg 1");
 	err = clSetKernelArg(adjustCentroids_k, 2, sizeof(int), &nPoints);
 	ocl_check(err, "set adjustCentroids arg 2");
-	err = clSetKernelArg(adjustCentroids_k, 3, sizeof(float)*nPoints*2, &points_d);
+	err = clSetKernelArg(adjustCentroids_k, 3, sizeof(points_d), &points_d);
 	ocl_check(err, "set adjustCentroids arg 3");
-	err = clSetKernelArg(adjustCentroids_k, 4, sizeof(int)*nPoints, &clusterID_d);
+	err = clSetKernelArg(adjustCentroids_k, 4, sizeof(clusterID_d), &clusterID_d);
 	ocl_check(err, "set adjustCentroids arg 4");
 
 	err= clEnqueueNDRangeKernel(que, adjustCentroids_k,
@@ -157,6 +177,9 @@ int main(int argc, char *argv[]){
 	cl_mem clusterID_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(int)*nPoints, NULL, &err);
 	ocl_check(err, "allocation of centroids");
 
+	cl_mem moreToDo_d = clCreateBuffer(ctx, CL_MEM_READ_WRITE, sizeof(int), NULL, &err);
+	ocl_check(err, "allocation of moreToDo");
+
 
 	//loading kernels
 
@@ -165,6 +188,9 @@ int main(int argc, char *argv[]){
 
 	cl_kernel assignPoints_k = clCreateKernel(prog, "assignPoints", &err);
 	ocl_check(err, "create kernel assignPoints");
+
+	cl_kernel setMoreToDo_k = clCreateKernel(prog, "setMoreToDo", &err);
+	ocl_check(err, "create kernel setMoreToDo");
 
 	cl_kernel adjustCentroids_k = clCreateKernel(prog, "adjustCentroids", &err);
 	ocl_check(err, "create kernel adjustCentroids");
@@ -188,6 +214,31 @@ int main(int argc, char *argv[]){
 
 
 	cl_event initClusterID_evt = initClusterID(que, initClusterID_k, nPoints, clusterID_d);
+
+	int *moreToDo = (int*)malloc(sizeof(int));
+	*moreToDo = 1;
+
+	cl_event assignPoints_evt, setMoreToDo_evt, adjustCentroids_evt, copyMoreToD_evt;
+
+	while(*moreToDo){
+
+		*moreToDo=0;
+		assignPoints_evt = assignPoints(que, assignPoints_k, nPoints, points_d,
+						clusterID_d, nClusters, centroids_d, moreToDo_d);
+		moreToDo = clEnqueueMapBuffer(que, moreToDo_d, CL_TRUE, CL_MAP_READ, 0, sizeof(int), 1, &assignPoints_evt, &copyMoreToD_evt, &err);
+		ocl_check(err, "enqueue read moreToDo");
+
+		setMoreToDo_evt = setMoreToDo(que, setMoreToDo_k, moreToDo_d, 0);
+
+
+
+		adjustCentroids_evt = adjustCentroids(que, adjustCentroids_k, nClusters,
+									centroids_d, nPoints, points_d, clusterID_d);
+
+		printf("%i\n", *moreToDo);
+
+
+	}
 	
 
 

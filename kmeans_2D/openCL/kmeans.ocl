@@ -11,7 +11,7 @@ kernel void initClusterID( int nPoints, global float *clusterID){
 #define DIST(xa, ya, xb, yb) sqrt(pow(xa-xb, 2.0f) + pow(ya-yb, 2.0f) )
 
 kernel void assignPoints(int nPoints, global float *points, global int *clusterID, 
-							 int nCluster, global float *centroids, global/*?*/ int *moreToDo){
+							 int nCluster, global float *centroids, global int *moreToDo){
 
 	int i = get_global_id(0);
 	float tmpDist, bestDist;
@@ -30,9 +30,13 @@ kernel void assignPoints(int nPoints, global float *points, global int *clusterI
 	}
 
 	if(oldClusterID != clusterID[i] )
-		++moreToDo;
+		*moreToDo+=1;
 
 
+}
+
+kernel void setMoreToDo(global int *moreToDo, int set){
+	*moreToDo = 0;
 }
 
 
