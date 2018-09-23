@@ -38,17 +38,16 @@ void initDistances(float * distances, float * p, int nPoints){
 
 void findMinDistances(float *distances, int nPoints, int *toMergeA, int *toMergeB){
 
-	int i,j;
 	float tmp = distances[0];
 
-	for(i=0; i<nPoints; ++i)
-		for(j=0; j<i; ++j){
-			if(distances[((i*(i-1))/2)+j] < tmp)
+	for(int i=0; i<nPoints; ++i)
+		for(int j=0; j<i; ++j){
+			if(distances[((i*(i-1))/2)+j] < tmp){
 				tmp = distances[((i*(i-1))/2)+j];
+				*toMergeA = i;
+				*toMergeB = j;
+			}
 		}
-
-	*toMergeA = i;
-	*toMergeB = j;
 
 }
 
@@ -70,6 +69,6 @@ int main(int argc, char *argv[]){
 	initDistances(distances, points, nPoints);
 	findMinDistances(distances, nPoints, &toMergeA, &toMergeB);
 
-
+	printf("toMergeA: %i\n toMergeB: %i\n", toMergeA, toMergeB);
 	
 }
