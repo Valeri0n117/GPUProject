@@ -11,17 +11,17 @@ int error(const char *msg) {
 	exit(1);
 }
 
-void stampa(float *distanze, int n){
+void printArray(float *array, int n){
 	for(int i=0; i<(n*(n-1))/2; i++)
-		printf("%f\n", distanze[i] );
+		printf("%f\n", array[i] );
 	return;
 }
 
 
-void verifyDyagonal(float *distanze, int n){
+void verifyDyagonal(float *distances, int n){
 
 	for(int i=1; i<n ; i++)
-		if(distanze[((i*(i-1))/2)+i-1] != 1 )
+		if(distances[((i*(i-1))/2)+i-1] != 1 )
 			printf("%d not one \n", i);
 
 }
@@ -32,7 +32,7 @@ void verifyDyagonal(float *distanze, int n){
 int main(int argc, char *argv[]){
 
 	if (argc < 2)
-		error("inserire il numero di elementi");
+		error("insert number of elements");
 
 	int n= atoi(argv[1]);
 
@@ -44,22 +44,22 @@ int main(int argc, char *argv[]){
 	}
 
 	//allocation triangular matrix
-	float *distanze = (float *)malloc(sizeof(float)*(n*(n-1))/2);
+	float *distances = (float *)malloc(sizeof(float)*(n*(n-1))/2);
 
 	start=clock();
 	for(int i=0; i<n; ++i)
 		for(int j=0; j<i; ++j){
-			distanze[((i*(i-1))/2)+j]= sqrt( pow(p[i*2]-p[j*2], 2.0f) + pow(p[i*2+1]-p[j*2+1], 2.0f) );
+			distances[((i*(i-1))/2)+j]= sqrt( pow(p[i*2]-p[j*2], 2.0f) + pow(p[i*2+1]-p[j*2+1], 2.0f) );
 		}
 	stop=clock();
 
-	verifyDyagonal(distanze, n);
-	//stampa(distanze,n);
+	verifyDyagonal(distances, n);
+	//printArray(distances,n);
 
 	printf("%f secondi\n", ((double)(stop-start))/CLOCKS_PER_SEC );
 
 	free(p);
-	free(distanze);
+	free(distances);
 
 	return 0;
 }
