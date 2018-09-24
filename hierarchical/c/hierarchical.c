@@ -98,13 +98,15 @@ int mergeClusters(float *points, int toMergeA, int toMergeB, int *clusterID,
 }
 
 
+
+
 int main(int argc, char *argv[]){
 	if (argc != 3)
 		error("usage: hierarchical nPoints nCluster ");
 
 	int nPoints = atoi(argv[1]);
 	int nCluster = nPoints;
-	int clusterObjective = atoi(argv[2]);
+	int target = atoi(argv[2]);
 
 	float *points = (float *)malloc(sizeof(float)*2*nPoints);
 	int *clusterID = (int *)malloc(sizeof(int)*nPoints);
@@ -114,9 +116,17 @@ int main(int argc, char *argv[]){
 
 	initPointsAndCentroids(points, centroids, nPoints);
 	initDistances(distances, points, nPoints);
-	findMinDistances(distances, nPoints, &toMergeA, &toMergeB);
-	mergeClusters(points, toMergeA, toMergeA, clusterID, nPoints, centroids, nCluster, distances);
+	
+	clock_t start,stop; 
 
-	printf("toMergeA: %i\ntoMergeB: %i\n", toMergeA, toMergeB);
+	start = clock();
+	while (nCluster > target){
+		findMinDistances(distances, nPoints, &toMergeA, &toMergeB);
+		nCluster = mergeClusters(points, toMergeA, toMergeA, clusterID, nPoints, centroids, nCluster, distances);
+	}
+	stop=clock();
+
+	//printf("toMergeA: %i\ntoMergeB: %i\n", toMergeA, toMergeB);
+	printf("%f secondi\n", ((double)(stop-start))/CLOCKS_PER_SEC );
 	
 }
